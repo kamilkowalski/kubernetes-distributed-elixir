@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:10.1
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: shoutbox
+        - name: POSTGRES_USER
+          value: shoutbox
+        - name: POSTGRES_PASSWORD
+          value: password123
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shoutbox
+spec:
+  selector:
+    matchLabels:
+      app: shoutbox
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: shoutbox
+    spec:
+      containers:
+      - name: shoutbox
+        image: shoutbox:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 4000
+        env:
+        - name: DATABASE_URL
+          value: "postgres://shoutbox:password123@postgres:5432/shoutbox"
+        - name: SECRET_KEY_BASE
+          value: "T/y+hmDVluJt8pN5vFPrmrWql6wL9fzy0h5g7gAwmZZTFOWiED1H+U6L7UEVEMrR"
+        - name: PORT
+          value: "4000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shoutbox
+spec:
+  selector:
+    app: shoutbox
+  ports:
+    - port: 4000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: default-ingress
+spec:
+  defaultBackend:
+    service:
+      name: shoutbox
+      port:
+        number: 4000
