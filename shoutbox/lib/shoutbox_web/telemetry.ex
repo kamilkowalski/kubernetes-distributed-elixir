@@ -30,13 +30,6 @@ defmodule ShoutboxWeb.Telemetry do
         unit: {:native, :millisecond}
       ),
 
-      # Database Metrics
-      summary("shoutbox.repo.query.total_time", unit: {:native, :millisecond}),
-      summary("shoutbox.repo.query.decode_time", unit: {:native, :millisecond}),
-      summary("shoutbox.repo.query.query_time", unit: {:native, :millisecond}),
-      summary("shoutbox.repo.query.queue_time", unit: {:native, :millisecond}),
-      summary("shoutbox.repo.query.idle_time", unit: {:native, :millisecond}),
-
       # VM Metrics
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),

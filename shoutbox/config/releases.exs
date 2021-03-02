@@ -1,17 +1,5 @@
 import Config
 
-database_url =
-  System.get_env("DATABASE_URL") ||
-    raise """
-    environment variable DATABASE_URL is missing.
-    For example: ecto://USER:PASS@HOST/DATABASE
-    """
-
-config :shoutbox, Shoutbox.Repo,
-  # ssl: true,
-  url: database_url,
-  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
-
 secret_key_base =
   System.get_env("SECRET_KEY_BASE") ||
     raise """
@@ -26,12 +14,25 @@ config :shoutbox, ShoutboxWeb.Endpoint,
   ],
   secret_key_base: secret_key_base
 
-# ## Using releases (Elixir v1.9+)
-#
-# If you are doing OTP releases, you need to instruct Phoenix
-# to start each relevant endpoint:
-#
 config :shoutbox, ShoutboxWeb.Endpoint, server: true
-#
-# Then you can assemble a release by calling `mix release`.
-# See `mix help release` for more information.
+
+namespace =
+  System.get_env("NAMESPACE") ||
+    raise """
+    environment variable NAMESPACE is required for clustering to work
+    """
+
+config :libcluster,
+  topologies: [
+    default: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :ip,
+        kubernetes_node_basename: "shoutbox",
+        kubernetes_selector: "app=shoutbox",
+        kubernetes_namespace: namespace,
+        kubernetes_ip_lookup_mode: :pods,
+        polling_interval: 10_000
+      ]
+    ]
+  ]
